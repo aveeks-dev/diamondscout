@@ -2,40 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; font-family: "Inter", system-ui, sans-serif; }
+html, body, #root {
+  height: 100%;
+  background: theme('colors.ink.bg');
+  color: theme('colors.ink.text');
+  font-family: theme('fontFamily.sans');
+  font-feature-settings: "ss01" on, "cv11" on;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-/* A subtle "baseball field" backdrop — chalk lines on navy. */
 body {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74,163,255,0.10), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(245,196,107,0.06), transparent 60%),
-    #0a1628;
+  /* Subtle paper-like texture. Two very low-opacity radial gradients give
+     the surface some variation without reading as decorative. */
+  background-image:
+    radial-gradient(60% 40% at 20% 0%, rgba(200, 156, 76, 0.035), transparent 70%),
+    radial-gradient(50% 35% at 100% 100%, rgba(125, 149, 181, 0.03), transparent 70%);
 }
 
-.card {
-  @apply bg-field-panel border border-field-line rounded-xl;
+/* ----- Typography utilities ----- */
+
+.num {
+  font-family: theme('fontFamily.mono');
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on, "zero" on;
+  letter-spacing: -0.01em;
 }
 
-.stat-label {
-  @apply text-[11px] uppercase tracking-widest text-field-mute;
+.display {
+  font-family: theme('fontFamily.serif');
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
-.stat-value {
-  @apply font-display text-2xl tracking-wide;
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: theme('colors.ink.dim');
 }
 
-.pill {
-  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider;
+/* ----- Surfaces ----- */
+
+.panel {
+  background: theme('colors.ink.panel');
+  border: 1px solid theme('colors.ink.line');
 }
 
-.grade-A { @apply text-diamond-green; }
-.grade-B { @apply text-diamond-blue; }
-.grade-C { @apply text-diamond-gold; }
-.grade-D { @apply text-diamond-red; }
-.grade-F { @apply text-diamond-red; }
-
-/* Keep input focus visible but on-brand */
-input:focus, select:focus, button:focus-visible {
-  outline: 2px solid theme('colors.diamond.gold');
-  outline-offset: 1px;
+.panel-rise {
+  background: theme('colors.ink.rise');
+  border: 1px solid theme('colors.ink.line');
 }
+
+/* ----- Focus ----- */
+
+*:focus { outline: none; }
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 1px solid theme('colors.accent');
+  outline-offset: 2px;
+}
+
+/* ----- Tables ----- */
+
+table.data {
+  font-size: 13px;
+  width: 100%;
+}
+table.data th {
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.ink.dim');
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid theme('colors.ink.line2');
+  background: theme('colors.ink.panel');
+  position: sticky;
+  top: 0;
+}
+table.data td {
+  padding: 10px 12px;
+  border-bottom: 1px solid theme('colors.ink.line');
+}
+table.data tr:hover td {
+  background: rgba(200, 156, 76, 0.03);
+}
+table.data .num {
+  text-align: right;
+}
+
+/* ----- Scrollbar ----- */
+
+::-webkit-scrollbar {
+  width: 10px; height: 10px;
+}
+::-webkit-scrollbar-track { background: theme('colors.ink.bg'); }
+::-webkit-scrollbar-thumb {
+  background: theme('colors.ink.line2');
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: theme('colors.ink.dim'); }

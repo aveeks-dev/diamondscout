@@ -1,100 +1,113 @@
 import { Link } from "react-router-dom";
 import type { Sleeper, Starter } from "../api";
 import TierBadge from "./TierBadge";
-import ComponentBars from "./ComponentBars";
-import { formatFirstPitch } from "./StartTime";
+import Sparkline from "./Sparkline";
 import WeatherChip from "./WeatherChip";
+import { formatFirstPitch } from "./StartTime";
 
-function SleeperPill({ s }: { s: Sleeper }) {
-  // Premium (Hidden Gem) = gold, basic (Streamer) = blue. Visual distinction.
+function SleeperMark({ s }: { s: Sleeper }) {
   const premium = s.tier === "premium";
-  const cls = premium
-    ? "bg-diamond-gold/15 text-diamond-gold border-diamond-gold/40"
-    : "bg-diamond-blue/15 text-diamond-blue border-diamond-blue/40";
-  const icon = premium ? "◆" : "◇";
-  return (
-    <div className={`pill border ${cls} self-start`}>
-      <span className="font-display">{icon}</span>
-      {s.tag} — {s.reason}
-    </div>
-  );
-}
-
-function OwnershipChip({ pct }: { pct: number | null }) {
-  if (pct === null) return null;
-  // Color map: low ownership = bright gold (interesting), high = muted gray
-  let color = "#4aa3ff";
-  if (pct < 10) color = "#f5c46b";
-  else if (pct < 40) color = "#4aa3ff";
-  else if (pct < 80) color = "#8aa3c2";
-  else color = "#6a8199";
   return (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tabular-nums"
-      style={{ backgroundColor: `${color}1f`, color, border: `1px solid ${color}55` }}
+      className="eyebrow"
+      style={{ color: premium ? "#c89c4c" : "#7d95b5" }}
     >
-      {pct.toFixed(0)}% rostered
+      {s.tag}
     </span>
   );
 }
 
-function fmt(v: any, dash = "—"): string {
-  if (v === undefined || v === null || v === "") return dash;
+function Ownership({ own, chg }: { own: number | null; chg: number | null }) {
+  if (own === null) return null;
+  return (
+    <span className="num text-xs text-ink-dim">
+      {own.toFixed(0)}% rostered
+      {chg !== null && chg !== 0 && (
+        <span
+          className="ml-1.5"
+          style={{ color: chg > 0 ? "#7ba974" : "#c87670" }}
+        >
+          {chg > 0 ? "↑" : "↓"}
+          {Math.abs(chg).toFixed(1)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function fmt(v: any): string {
+  if (v === undefined || v === null || v === "") return "—";
   return String(v);
 }
 
 export default function PitcherCard({ s }: { s: Starter }) {
   const ss = s.season_stats;
+  const last5Eras = s.last5.map((g) => (g.era !== undefined ? Number(g.era) : null));
+
   return (
     <Link
       to={`/pitcher/${s.pitcher.id}`}
-      className="card p-4 flex flex-col gap-4 hover:border-diamond-gold/50 transition-colors group"
+      className="panel p-5 flex flex-col gap-4 group transition-colors hover:border-accent/50"
     >
-      <div className="flex items-start justify-between gap-3">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-semibold text-field-mute">
-              {s.pitcher.team_abbr}
-            </span>
-            <span className="text-[11px] text-field-mute">vs</span>
-            <span className="text-[11px] font-semibold text-field-mute">
-              {s.opponent.team_abbr}
-            </span>
-            <span className="text-[11px] text-field-mute">
-              · {formatFirstPitch(s.game_time_utc)} · {s.venue.is_home ? "home" : "away"}
-            </span>
+          <div className="flex items-center gap-2 text-2xs tracking-wider">
+            <span className="num font-semibold text-ink-text/80">{s.pitcher.team_abbr}</span>
+            <span className="text-ink-faint">VS</span>
+            <span className="num font-semibold text-ink-text/80">{s.opponent.team_abbr}</span>
+            <span className="text-ink-faint">·</span>
+            <span className="num text-ink-dim">{formatFirstPitch(s.game_time_utc)}</span>
+            <span className="text-ink-faint">·</span>
+            <span className="text-ink-dim uppercase tracking-widest">{s.venue.is_home ? "Home" : "Road"}</span>
+            {s.sleeper && (
+              <>
+                <span className="text-ink-faint">·</span>
+                <SleeperMark s={s.sleeper} />
+              </>
+            )}
           </div>
-          <div className="font-display text-2xl tracking-wide truncate mt-0.5 group-hover:text-diamond-gold transition-colors">
+          <div className="display text-[26px] leading-tight mt-1.5 truncate group-hover:text-accent transition-colors">
             {s.pitcher.name}
           </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="text-xs text-field-mute">{s.pitcher.throws}HP</span>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-ink-dim">
+            <span>{s.pitcher.throws}HP</span>
             <WeatherChip weather={s.weather} />
-            <OwnershipChip pct={s.ownership.percent_owned} />
+            <Ownership own={s.ownership.percent_owned} chg={s.ownership.percent_change} />
           </div>
         </div>
         <TierBadge tier={s.tier_meta} score={s.score} size="md" />
       </div>
 
-      {s.sleeper && <SleeperPill s={s.sleeper} />}
-
-      <div className="grid grid-cols-4 gap-2 text-center">
-        <Stat label="ERA" value={fmt(ss.era)} />
-        <Stat label="WHIP" value={fmt(ss.whip)} />
-        <Stat label="K/9" value={fmt(ss.so9)} />
-        <Stat label="IP" value={fmt(ss.ip)} />
+      {/* Stat strip — box-score feel */}
+      <div className="grid grid-cols-5 border-y border-ink-line py-3 -mx-1">
+        <StatCell label="ERA"  v={fmt(ss.era)} />
+        <StatCell label="WHIP" v={fmt(ss.whip)} />
+        <StatCell label="K/9"  v={fmt(ss.so9)} />
+        <StatCell label="BB/9" v={fmt(ss.bb9)} />
+        <StatCell label="IP"   v={fmt(ss.ip)} />
       </div>
 
-      <ComponentBars components={s.components} />
+      {/* Recent form: trend + sparkline */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="eyebrow">L5 ERA</span>
+          <Sparkline values={last5Eras} width={100} height={22} invert={true} />
+        </div>
+        <div className="text-xs text-ink-dim">
+          <span className="num text-ink-text">{fmt(ss.avg_against)}</span>
+          <span className="ml-1.5">opp avg</span>
+        </div>
+      </div>
     </Link>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function StatCell({ label, v }: { label: string; v: string }) {
   return (
-    <div>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value text-field-chalk tabular-nums">{value}</div>
+    <div className="text-center px-1">
+      <div className="eyebrow mb-1">{label}</div>
+      <div className="num text-xl text-ink-text">{v}</div>
     </div>
   );
 }

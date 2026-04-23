@@ -9,50 +9,54 @@ export default function Prospects() {
 
   useEffect(() => {
     fetchProspects()
-      .then((d) => {
-        setRows(d.prospects);
-        setLoading(false);
-      })
-      .catch((e) => {
-        setErr(e.message || "Failed to load");
-        setLoading(false);
-      });
+      .then((d) => { setRows(d.prospects); setLoading(false); })
+      .catch((e) => { setErr(e.message || "Failed to load"); setLoading(false); });
   }, []);
 
   if (loading) {
-    return <div className="py-20 text-center text-field-mute">Scanning pitchers for breakout signals…</div>;
+    return (
+      <div className="py-24 flex flex-col items-center gap-3">
+        <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <div className="eyebrow">Scanning for breakout signals</div>
+      </div>
+    );
   }
-
   if (err) {
     return (
-      <div className="card p-6 text-diamond-red border-diamond-red/40">
-        <div className="font-display text-2xl">Could not load prospects</div>
-        <div className="text-sm text-field-mute mt-1">{err}</div>
+      <div className="panel p-6 border-neg/40">
+        <div className="display text-2xl text-neg">Could not load prospects</div>
+        <div className="text-sm text-ink-dim mt-1">{err}</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-20">
-      <div>
-        <div className="font-display text-4xl tracking-wide">Future Prospects</div>
-        <div className="text-field-mute text-sm mt-2 max-w-3xl leading-relaxed">
-          Pitchers rostered in under 30% of ESPN leagues with measurable upside. Each candidate needs
-          at least two qualifying signals to make the list, drawn from season performance, recent form,
-          age and debut date, waiver momentum, and recent ESPN news mentions. The goal is to surface
-          names worth a speculative add before the broader fantasy crowd catches on.
+    <div className="space-y-10 pb-16">
+      <header className="border-b border-ink-line pb-6 flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <div className="eyebrow mb-1">Scouting</div>
+          <h1 className="display text-[44px] leading-none">Future Prospects</h1>
+          <p className="text-sm text-ink-dim mt-3 max-w-2xl">
+            Pitchers rostered in under 30% of ESPN leagues with measurable upside.
+            Each candidate clears at least two independent signals, drawn from
+            season stats, recent form, age and debut date, waiver momentum, and
+            ESPN news coverage.
+          </p>
         </div>
-      </div>
+        <div className="text-right">
+          <div className="num display text-[40px] leading-none">{rows.length}</div>
+          <div className="eyebrow mt-1">Candidates</div>
+        </div>
+      </header>
 
       {rows.length === 0 ? (
-        <div className="card p-8 text-center text-field-mute">
-          No prospects matched the criteria today. Check back after tonight's games.
+        <div className="panel p-10 text-center">
+          <div className="display text-xl">No candidates matched today</div>
+          <div className="text-sm text-ink-dim mt-2">Check back after tonight's slate.</div>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
-          {rows.map((p) => (
-            <ProspectCard key={p.pitcher.id} p={p} />
-          ))}
+          {rows.map((p) => <ProspectCard key={p.pitcher.id} p={p} />)}
         </div>
       )}
     </div>
@@ -63,62 +67,63 @@ function ProspectCard({ p }: { p: Prospect }) {
   const ss = p.season_stats;
   const own = p.ownership.percent_owned;
   return (
-    <div className="card p-5 flex flex-col gap-4 hover:border-diamond-gold/40 transition-colors">
+    <article className="panel p-6 flex flex-col gap-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap text-[11px] uppercase tracking-widest text-field-mute">
-            {p.pitcher.team_abbr && <span className="font-semibold">{p.pitcher.team_abbr}</span>}
-            {p.pitcher.throws && <span>{p.pitcher.throws}HP</span>}
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-2xs tracking-wider text-ink-dim uppercase">
+            {p.pitcher.team_abbr && (
+              <span className="num text-ink-text/80 font-semibold">{p.pitcher.team_abbr}</span>
+            )}
+            {p.pitcher.throws && <span>· {p.pitcher.throws}HP</span>}
             {p.pitcher.age && <span>· age {p.pitcher.age}</span>}
             {p.starting_today && (
-              <span className="text-diamond-gold font-semibold">
+              <span className="ml-1 text-accent font-semibold">
                 · Starting today vs {p.next_start_opp}
               </span>
             )}
           </div>
           <Link
             to={`/pitcher/${p.pitcher.id}`}
-            className="font-display text-3xl tracking-wide truncate hover:text-diamond-gold transition-colors block"
+            className="display text-[30px] leading-tight block mt-1 hover:text-accent transition-colors truncate"
           >
             {p.pitcher.name}
           </Link>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase tracking-widest text-field-mute">Rostered</div>
-          <div className="font-display text-3xl text-diamond-gold tabular-nums">
+          <div className="num display text-[34px] leading-none text-accent">
             {own !== null ? `${own.toFixed(1)}%` : "—"}
           </div>
+          <div className="eyebrow mt-1">Rostered</div>
           {p.ownership.percent_change !== null && p.ownership.percent_change !== 0 && (
             <div
-              className="text-xs tabular-nums"
-              style={{ color: p.ownership.percent_change > 0 ? "#3fd17a" : "#e04e4e" }}
+              className="num text-2xs mt-1"
+              style={{ color: p.ownership.percent_change > 0 ? "#7ba974" : "#c87670" }}
             >
-              {p.ownership.percent_change > 0 ? "▲" : "▼"}
+              {p.ownership.percent_change > 0 ? "↑" : "↓"}
               {Math.abs(p.ownership.percent_change).toFixed(1)} this week
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 text-center border-y border-field-line/60 py-3">
-        <MiniStat label="ERA" v={ss.era} />
+      <div className="grid grid-cols-5 border-y border-ink-line py-3">
+        <MiniStat label="ERA"  v={ss.era} />
         <MiniStat label="WHIP" v={ss.whip} />
-        <MiniStat label="K/9" v={ss.so9} />
+        <MiniStat label="K/9"  v={ss.so9} />
         <MiniStat label="BB/9" v={ss.bb9} />
-        <MiniStat label="IP" v={ss.ip} />
+        <MiniStat label="IP"   v={ss.ip} />
       </div>
 
-      <div className="space-y-2">
-        {p.reasons.map((r, i) => (
-          <ReasonRow key={i} r={r} />
-        ))}
+      <div>
+        <div className="eyebrow mb-2">Why</div>
+        <ul className="space-y-2.5">
+          {p.reasons.map((r, i) => <ReasonRow key={i} r={r} />)}
+        </ul>
       </div>
 
       {p.articles.length > 0 && (
-        <div className="border-t border-field-line/60 pt-3">
-          <div className="text-[10px] uppercase tracking-widest text-field-mute mb-2">
-            Recent coverage
-          </div>
+        <div className="border-t border-ink-line pt-4">
+          <div className="eyebrow mb-2">Recent coverage</div>
           <ul className="space-y-1.5">
             {p.articles.map((a, i) => (
               <li key={i} className="text-sm">
@@ -126,15 +131,13 @@ function ProspectCard({ p }: { p: Prospect }) {
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-diamond-blue hover:text-diamond-gold transition-colors"
+                  className="text-ink-text hover:text-accent transition-colors underline underline-offset-2 decoration-ink-line2 hover:decoration-accent"
                 >
                   {a.headline}
                 </a>
                 {a.published && (
-                  <span className="ml-2 text-xs text-field-mute tabular-nums">
-                    {new Date(a.published).toLocaleDateString(undefined, {
-                      month: "short", day: "numeric",
-                    })}
+                  <span className="ml-2 num text-2xs text-ink-faint">
+                    {new Date(a.published).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                   </span>
                 )}
               </li>
@@ -142,37 +145,52 @@ function ProspectCard({ p }: { p: Prospect }) {
           </ul>
         </div>
       )}
-    </div>
+    </article>
   );
 }
 
 function MiniStat({ label, v }: { label: string; v: any }) {
   return (
-    <div>
-      <div className="stat-label">{label}</div>
-      <div className="font-display text-xl text-field-chalk tabular-nums">
-        {v ?? "—"}
-      </div>
+    <div className="text-center">
+      <div className="eyebrow mb-1">{label}</div>
+      <div className="num text-lg">{v ?? "—"}</div>
     </div>
   );
 }
 
+// Map each reason tag to a color accent. No emoji; just a small label.
+const REASON_COLOR: Record<string, string> = {
+  "Hot Streak":       "#c89c4c",
+  "Swing & Miss":     "#c89c4c",
+  "Pinpoint Control": "#7ba974",
+  "Hidden Quality":   "#c89c4c",
+  "Trending Up":      "#7ba974",
+  "Rookie":           "#7d95b5",
+  "Young Arm":        "#7d95b5",
+  "Waiver Riser":     "#7ba974",
+  "In the News":      "#a69168",
+};
+
 function ReasonRow({ r }: { r: ProspectReason }) {
+  const color = REASON_COLOR[r.tag] || "#9b9a94";
   return (
-    <div className="flex items-start gap-3">
-      <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-lg"
-        style={{
-          background: "rgba(245,196,107,0.08)",
-          border: "1px solid rgba(245,196,107,0.25)",
-        }}
-      >
-        {r.icon}
-      </div>
+    <li className="flex gap-3 items-baseline">
+      <span
+        className="w-[3px] self-stretch rounded"
+        style={{ background: color }}
+        aria-hidden
+      />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-field-chalk">{r.tag}</div>
-        <div className="text-xs text-field-mute">{r.detail}</div>
+        <div className="flex items-baseline gap-3">
+          <span
+            className="text-2xs font-semibold tracking-widest uppercase shrink-0"
+            style={{ color }}
+          >
+            {r.tag}
+          </span>
+        </div>
+        <div className="text-sm text-ink-text/85 mt-0.5">{r.detail}</div>
       </div>
-    </div>
+    </li>
   );
 }

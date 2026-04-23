@@ -1,4 +1,4 @@
-import type { TierMeta } from "../api";
+import type { Tier, TierMeta } from "../api";
 
 type Props = {
   tier: TierMeta;
@@ -6,48 +6,48 @@ type Props = {
   size?: "sm" | "md" | "lg";
 };
 
-// S-tier gets an extra glow to feel genuinely premium.
-const GLOW: Record<string, string> = {
-  S: "0 0 18px rgba(245,196,107,0.45), inset 0 0 10px rgba(245,196,107,0.15)",
-  A: "0 0 10px rgba(63,209,122,0.25)",
-  B: "",
-  C: "",
-  D: "",
-  F: "",
-};
-
 const SIZES = {
-  sm: { box: 56,  letter: "text-2xl",  name: "text-[9px]",  score: "text-[10px]" },
-  md: { box: 88,  letter: "text-5xl",  name: "text-[10px]", score: "text-xs"   },
-  lg: { box: 128, letter: "text-7xl",  name: "text-xs",     score: "text-sm"   },
+  sm: { letter: "text-xl",   label: "text-2xs", score: "text-2xs" },
+  md: { letter: "text-4xl",  label: "text-2xs", score: "text-xs"  },
+  lg: { letter: "text-7xl",  label: "text-xs",  score: "text-sm"  },
 };
 
+/**
+ * Tier display. Deliberately flat: serif letter, thin color bar, quiet
+ * archetype label below. No gradients, no glow, no box background. The
+ * letter and the score carry the weight.
+ */
 export default function TierBadge({ tier, score, size = "md" }: Props) {
   const s = SIZES[size];
-  const glow = GLOW[tier.label] || "";
   return (
-    <div
-      className="relative shrink-0 rounded-xl flex flex-col items-center justify-center"
-      style={{
-        width: s.box,
-        height: s.box,
-        background: `linear-gradient(160deg, ${tier.color}22 0%, ${tier.color}08 100%)`,
-        border: `1.5px solid ${tier.color}80`,
-        boxShadow: glow,
-      }}
-    >
-      <div
-        className={`font-display ${s.letter} leading-none`}
-        style={{ color: tier.color, textShadow: tier.label === "S" ? `0 0 12px ${tier.color}` : undefined }}
-      >
+    <div className="shrink-0 text-right">
+      <div className={`display ${s.letter} leading-none`} style={{ color: tier.color }}>
         {tier.label}
       </div>
-      <div className={`${s.name} uppercase tracking-[0.15em] mt-0.5`} style={{ color: tier.color }}>
+      <div
+        className="h-[2px] w-full mt-1 mb-1.5"
+        style={{ background: tier.color, opacity: 0.55 }}
+      />
+      <div className={`${s.label} tracking-[0.14em] uppercase text-ink-dim`}>
         {tier.name}
       </div>
-      <div className={`${s.score} text-field-mute tabular-nums mt-0.5`}>
+      <div className={`${s.score} num text-ink-faint mt-0.5`}>
         {score.toFixed(0)}
       </div>
     </div>
+  );
+}
+
+/** Compact inline tier cell for tables. */
+export function TierInline({ tier, score }: { tier: Tier | string; score: number }) {
+  const colors: Record<string, string> = {
+    S: "#c89c4c", A: "#7ba974", B: "#7d95b5", C: "#a69168", D: "#b07d5c", F: "#a96560",
+  };
+  const c = colors[tier] || "#9b9a94";
+  return (
+    <span className="inline-flex items-baseline gap-2">
+      <span className="display text-xl leading-none" style={{ color: c }}>{tier}</span>
+      <span className="num text-2xs text-ink-faint">{score.toFixed(0)}</span>
+    </span>
   );
 }

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Starter } from "../api";
 import TierBadge from "../components/TierBadge";
-import ComponentBars from "../components/ComponentBars";
-import { formatFirstPitch } from "../components/StartTime";
+import Sparkline from "../components/Sparkline";
 import WeatherChip from "../components/WeatherChip";
+import { formatFirstPitch } from "../components/StartTime";
 
 export default function PitcherDetail() {
   const { id } = useParams();
@@ -14,7 +14,7 @@ export default function PitcherDetail() {
   useEffect(() => {
     fetch(`/api/pitcher/${id}`)
       .then(async (r) => {
-        if (!r.ok) throw new Error(`Not found (${r.status})`);
+        if (!r.ok) throw new Error(`Not starting today (${r.status})`);
         setS(await r.json());
       })
       .catch((e) => setErr(e.message));
@@ -22,191 +22,262 @@ export default function PitcherDetail() {
 
   if (err) {
     return (
-      <div className="card p-6 text-diamond-red border-diamond-red/40">
-        <div className="font-display text-2xl">Not starting today</div>
-        <div className="text-sm text-field-mute mt-1">{err}</div>
-        <Link to="/" className="inline-block mt-4 text-diamond-gold hover:underline">← Back to board</Link>
+      <div className="panel p-8 border-neg/30">
+        <div className="display text-2xl text-neg">Not starting today</div>
+        <div className="text-sm text-ink-dim mt-1">{err}</div>
+        <Link to="/" className="inline-block mt-4 text-accent hover:underline text-sm">
+          ← Back to board
+        </Link>
       </div>
     );
   }
 
-  if (!s) return <div className="py-20 text-center text-field-mute">Loading…</div>;
+  if (!s) {
+    return (
+      <div className="py-24 flex flex-col items-center gap-3">
+        <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <div className="eyebrow">Loading pitcher</div>
+      </div>
+    );
+  }
 
   const ss = s.season_stats;
+  const last5Eras = s.last5.map((g) => (g.era !== undefined ? Number(g.era) : null));
+
   return (
-    <div className="space-y-6 pb-20">
-      <Link to="/" className="text-diamond-gold text-sm hover:underline">← Back to board</Link>
+    <div className="space-y-10 pb-16">
+      <Link to="/" className="text-accent text-xs tracking-wider uppercase hover:underline">
+        ← Board
+      </Link>
 
-      <div className="card p-6 flex flex-col md:flex-row gap-6 md:items-center">
-        <TierBadge tier={s.tier_meta} score={s.score} size="lg" />
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-field-mute uppercase tracking-widest">
-            {s.pitcher.team} — {s.pitcher.throws}HP
-          </div>
-          <div className="font-display text-5xl tracking-wide truncate">
-            {s.pitcher.name}
-          </div>
-          <div className="text-field-mute mt-1 flex items-center flex-wrap gap-x-3 gap-y-1">
-            <span>vs {s.opponent.name}</span>
-            <span>· {formatFirstPitch(s.game_time_utc)}</span>
-            <span>· {s.venue.is_home ? "Home start" : "Road start"}</span>
-            <WeatherChip weather={s.weather} size="md" />
-          </div>
-          {s.sleeper && (
-            <div className="pill bg-diamond-gold/15 text-diamond-gold border border-diamond-gold/30 mt-3">
-              ★ {s.sleeper.tag} — {s.sleeper.reason}
+      {/* Masthead */}
+      <header className="border-b border-ink-line pb-8">
+        <div className="grid grid-cols-[1fr_auto] gap-8 items-start">
+          <div className="min-w-0">
+            <div className="eyebrow mb-2">
+              {s.pitcher.team} · {s.pitcher.throws}HP
+              {s.sleeper && (
+                <span className="ml-3" style={{ color: s.sleeper.tier === "premium" ? "#c89c4c" : "#7d95b5" }}>
+                  {s.sleeper.tag}
+                </span>
+              )}
             </div>
-          )}
-        </div>
-        <div className="w-full md:w-64 shrink-0">
-          <ComponentBars components={s.components} />
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card title="Season line">
-          <dl className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-            <Row k="IP"    v={ss.ip} />
-            <Row k="W-L"   v={`${ss.w ?? 0}-${ss.l ?? 0}`} />
-            <Row k="ERA"   v={ss.era} />
-            <Row k="WHIP"  v={ss.whip} />
-            <Row k="K"     v={ss.k} />
-            <Row k="BB"    v={ss.bb} />
-            <Row k="K/9"   v={ss.so9} />
-            <Row k="BB/9"  v={ss.bb9} />
-            <Row k="HR"    v={ss.hr} />
-            <Row k="AVG"   v={ss.avg_against} />
-          </dl>
-        </Card>
-
-        <Card title={`Opponent (vs ${s.opponent_offense.faces_hand})`}>
-          <div className="text-xs text-field-mute mb-2">{s.opponent.name}</div>
-          <dl className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-            <Row k="OPS vs hand"  v={s.opponent_offense.vs_hand.ops ?? s.opponent_offense.season.ops} />
-            <Row k="OPS (season)" v={s.opponent_offense.season.ops} />
-            <Row k="OPS (last 14)" v={s.opponent_offense.last14.ops} />
-            <Row k="K (season)"    v={s.opponent_offense.season.so} />
-            <Row k="HR (season)"   v={s.opponent_offense.season.hr} />
-            <Row k="Runs (season)" v={s.opponent_offense.season.runs} />
-          </dl>
-        </Card>
-
-        <Card title="Environment">
-          <dl className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-            <Row k="Park runs" v={s.park.runs} />
-            <Row k="Park HR"   v={s.park.hr} />
-            <Row k="Home/Road" v={s.venue.is_home ? "Home" : "Road"} />
-            {s.weather && (
-              <>
-                <Row k="Weather" v={s.weather.indoor ? "Indoors" : s.weather.condition} />
-                {s.weather.temp_f !== null && <Row k="Temp" v={`${s.weather.temp_f}°F`} />}
-                {s.weather.wind_mph !== null && (
-                  <Row k="Wind" v={`${s.weather.wind_mph} mph${s.weather.windy ? " (windy)" : ""}`} />
-                )}
-                {s.weather.precip_in !== null && s.weather.precip_in > 0 && (
-                  <Row k="Precip" v={`${s.weather.precip_in}"`} />
-                )}
-              </>
-            )}
-          </dl>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-1">
-        <Card title="Fantasy profile (ESPN)">
-          <dl className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-6 text-sm">
-            <Row k="Rostered"
-                 v={s.ownership.percent_owned !== null
-                    ? `${s.ownership.percent_owned.toFixed(1)}%` : "—"} />
-            <Row k="Started"
-                 v={s.ownership.percent_started !== null
-                    ? `${s.ownership.percent_started.toFixed(1)}%` : "—"} />
-            <Row k="Δ this week"
-                 v={s.ownership.percent_change !== null
-                    ? `${s.ownership.percent_change > 0 ? "+" : ""}${s.ownership.percent_change.toFixed(1)}`
-                    : "—"} />
-            <Row k="ADP"
-                 v={s.ownership.adp && s.ownership.adp > 0
-                    ? s.ownership.adp.toFixed(1) : "Undrafted"} />
-          </dl>
-        </Card>
-      </div>
-
-      <Card title="Last 5 starts">
-        {s.last5.length === 0 ? (
-          <div className="text-field-mute text-sm">No recent starts on record this season yet.</div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="text-field-mute">
-              <tr className="text-left">
-                <th className="py-1">Date</th>
-                <th>Opp</th>
-                <th>IP</th>
-                <th>ER</th>
-                <th>H</th>
-                <th>BB</th>
-                <th>K</th>
-                <th>HR</th>
-                <th>Pitches</th>
-                <th>ERA</th>
-              </tr>
-            </thead>
-            <tbody>
-              {s.last5.map((g, i) => (
-                <tr key={i} className="border-t border-field-line/60 tabular-nums">
-                  <td className="py-1">{g.date}</td>
-                  <td>{g.opp ?? "—"}</td>
-                  <td>{g.ip ?? "—"}</td>
-                  <td>{g.er ?? "—"}</td>
-                  <td>{g.h ?? "—"}</td>
-                  <td>{g.bb ?? "—"}</td>
-                  <td>{g.k ?? "—"}</td>
-                  <td>{g.hr ?? "—"}</td>
-                  <td>{g.pitches ?? "—"}</td>
-                  <td>{g.era ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Splits (pitcher)">
-          <div className="grid grid-cols-2 gap-x-6">
-            <SplitCol label="vs LHB" s={s.splits.vs_L} />
-            <SplitCol label="vs RHB" s={s.splits.vs_R} />
+            <h1 className="display text-[64px] leading-[0.95] tracking-tight truncate">
+              {s.pitcher.name}
+            </h1>
+            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-4 text-sm text-ink-dim">
+              <span>vs <span className="text-ink-text">{s.opponent.name}</span></span>
+              <span>·</span>
+              <span className="num">{formatFirstPitch(s.game_time_utc)}</span>
+              <span>·</span>
+              <span>{s.venue.is_home ? "Home" : "Road"}</span>
+              <span>·</span>
+              <WeatherChip weather={s.weather} size="md" />
+            </div>
           </div>
-        </Card>
-        <Card title="How the score is built">
+          <TierBadge tier={s.tier_meta} score={s.score} size="lg" />
+        </div>
+      </header>
+
+      {/* Season line — full box score */}
+      <section>
+        <SectionHead overline="Season" title="Line" />
+        <div className="panel divide-x divide-ink-line grid grid-cols-5 md:grid-cols-10">
+          <BigStat label="IP" v={ss.ip} />
+          <BigStat label="W-L" v={`${ss.w ?? 0}-${ss.l ?? 0}`} />
+          <BigStat label="ERA" v={ss.era} highlight />
+          <BigStat label="WHIP" v={ss.whip} highlight />
+          <BigStat label="K" v={ss.k} />
+          <BigStat label="BB" v={ss.bb} />
+          <BigStat label="K/9" v={ss.so9} />
+          <BigStat label="BB/9" v={ss.bb9} />
+          <BigStat label="HR" v={ss.hr} />
+          <BigStat label="AVG" v={ss.avg_against} />
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <Panel title="Opponent" overline={`vs ${s.opponent_offense.faces_hand}`}>
+          <div className="eyebrow text-ink-faint mb-3">{s.opponent.name}</div>
+          <DataList
+            rows={[
+              ["OPS vs hand", s.opponent_offense.vs_hand.ops ?? s.opponent_offense.season.ops],
+              ["OPS (season)", s.opponent_offense.season.ops],
+              ["OPS (last 14)", s.opponent_offense.last14.ops],
+              ["K (season)", s.opponent_offense.season.so],
+              ["HR (season)", s.opponent_offense.season.hr],
+              ["Runs (season)", s.opponent_offense.season.runs],
+            ]}
+          />
+        </Panel>
+
+        <Panel title="Environment" overline={s.venue.is_home ? "Home start" : "Road start"}>
+          <DataList
+            rows={[
+              ["Park factor (R)", s.park.runs],
+              ["Park factor (HR)", s.park.hr],
+              ["Weather", s.weather?.indoor ? "Indoors" : s.weather?.condition ?? "—"],
+              ["Temp", s.weather?.temp_f !== null && s.weather?.temp_f !== undefined ? `${s.weather.temp_f}°F` : null],
+              ["Wind", s.weather?.wind_mph !== null && s.weather?.wind_mph !== undefined
+                ? `${s.weather.wind_mph} mph${s.weather.windy ? " · windy" : ""}`
+                : null],
+              ...(s.weather?.precip_in && s.weather.precip_in > 0
+                ? [["Precip", `${s.weather.precip_in}"`] as [string, any]]
+                : []),
+            ]}
+          />
+        </Panel>
+
+        <Panel title="Fantasy" overline="ESPN">
+          <DataList
+            rows={[
+              ["Rostered", s.ownership.percent_owned !== null ? `${s.ownership.percent_owned.toFixed(1)}%` : null],
+              ["Started", s.ownership.percent_started !== null ? `${s.ownership.percent_started.toFixed(1)}%` : null],
+              [
+                "Week change",
+                s.ownership.percent_change !== null
+                  ? `${s.ownership.percent_change > 0 ? "+" : ""}${s.ownership.percent_change.toFixed(1)}`
+                  : null,
+              ],
+              ["ADP", s.ownership.adp && s.ownership.adp > 0 ? s.ownership.adp.toFixed(1) : "Undrafted"],
+              ["Auction", s.ownership.auction_value && s.ownership.auction_value > 0 ? `$${s.ownership.auction_value.toFixed(0)}` : null],
+            ]}
+          />
+        </Panel>
+      </section>
+
+      {/* Recent form */}
+      <section>
+        <SectionHead overline="Recent" title="Last 5 starts" />
+        {s.last5.length === 0 ? (
+          <div className="panel p-6 text-sm text-ink-dim">No recorded starts this season yet.</div>
+        ) : (
+          <div className="panel p-5 flex flex-col gap-4">
+            <div className="flex items-center gap-4 pb-3 border-b border-ink-line">
+              <span className="eyebrow">Trend</span>
+              <Sparkline values={last5Eras} width={200} height={30} invert />
+              <span className="num text-xs text-ink-dim ml-auto">ERA by start</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="data">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Opp</th>
+                    <th className="num">IP</th>
+                    <th className="num">ER</th>
+                    <th className="num">H</th>
+                    <th className="num">BB</th>
+                    <th className="num">K</th>
+                    <th className="num">HR</th>
+                    <th className="num">Pitches</th>
+                    <th className="num">ERA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {s.last5.map((g, i) => (
+                    <tr key={i}>
+                      <td className="num">{g.date}</td>
+                      <td className="num text-ink-dim">{g.opp ?? "—"}</td>
+                      <td className="num">{g.ip ?? "—"}</td>
+                      <td className="num">{g.er ?? "—"}</td>
+                      <td className="num">{g.h ?? "—"}</td>
+                      <td className="num">{g.bb ?? "—"}</td>
+                      <td className="num">{g.k ?? "—"}</td>
+                      <td className="num">{g.hr ?? "—"}</td>
+                      <td className="num">{g.pitches ?? "—"}</td>
+                      <td className="num">{g.era ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Panel title="Splits" overline="Pitcher vs hand">
+          <div className="grid grid-cols-2 gap-x-8">
+            <SplitColumn label="vs LHB" s={s.splits.vs_L} />
+            <SplitColumn label="vs RHB" s={s.splits.vs_R} />
+          </div>
+        </Panel>
+        <Panel title="How the score is built" overline="Breakdown">
           <ScoreBreakdown s={s} />
-        </Card>
-      </div>
+        </Panel>
+      </section>
     </div>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+// ─── shared bits ────────────────────────────────────────────────────────────
+
+function SectionHead({ overline, title }: { overline: string; title: string }) {
   return (
-    <div className="card p-5">
-      <div className="font-display text-xl tracking-wide mb-3">{title}</div>
+    <div className="flex items-baseline gap-4 mb-4 pb-2 border-b border-ink-line">
+      <span className="eyebrow">{overline}</span>
+      <h2 className="display text-[26px] leading-none">{title}</h2>
+    </div>
+  );
+}
+
+function Panel({
+  title, overline, children,
+}: { title: string; overline?: string; children: React.ReactNode }) {
+  return (
+    <div className="panel p-5">
+      <div className="flex items-baseline gap-3 mb-4 pb-2 border-b border-ink-line">
+        {overline && <span className="eyebrow">{overline}</span>}
+        <h3 className="display text-[20px] leading-none">{title}</h3>
+      </div>
       {children}
     </div>
   );
 }
 
-function Row({ k, v }: { k: string; v: any }) {
+function BigStat({ label, v, highlight }: { label: string; v: any; highlight?: boolean }) {
   return (
-    <>
-      <dt className="text-field-mute">{k}</dt>
-      <dd className="tabular-nums">{v ?? "—"}</dd>
-    </>
+    <div className="px-3 py-4 text-center">
+      <div className="eyebrow mb-1">{label}</div>
+      <div className={`num text-2xl ${highlight ? "text-accent" : "text-ink-text"}`}>
+        {v ?? "—"}
+      </div>
+    </div>
   );
 }
 
-// Human-readable labels for the underlying inputs that feed each scoring
-// component. Mapping keeps the backend breakdown keys flexible while
-// guaranteeing the UI only shows things it understands.
+function DataList({ rows }: { rows: Array<[string, any]> }) {
+  return (
+    <dl className="divide-y divide-ink-line text-sm">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex justify-between py-2">
+          <dt className="text-ink-dim">{k}</dt>
+          <dd className="num">{v === null || v === undefined || v === "" ? "—" : v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function SplitColumn({ label, s }: { label: string; s: any }) {
+  return (
+    <div>
+      <div className="eyebrow mb-3">{label}</div>
+      <DataList
+        rows={[
+          ["ERA", s.era],
+          ["WHIP", s.whip],
+          ["AVG", s.avg_against],
+          ["K", s.k],
+        ]}
+      />
+    </div>
+  );
+}
+
+// ─── score breakdown ────────────────────────────────────────────────────────
+
 const BREAKDOWN_LABELS: Record<string, string> = {
   "K%": "Strikeout rate",
   "BB%": "Walk rate",
@@ -214,10 +285,10 @@ const BREAKDOWN_LABELS: Record<string, string> = {
   "WHIP": "Season WHIP",
   "OPS_vs_hand": "Opponent OPS vs hand",
   "K%_vs_hand": "Opponent K% vs hand",
-  "OPS_last14": "Opponent OPS, last 14 days",
+  "OPS_last14": "Opponent OPS last 14",
   "park": "Park",
-  "park_runs_idx": "Park factor (runs)",
-  "park_hr_idx": "Park factor (HR)",
+  "park_runs_idx": "Park runs index",
+  "park_hr_idx": "Park HR index",
   "home": "Home start",
   "starts_used": "Starts analyzed",
   "last_era": "Recent ERA",
@@ -225,18 +296,23 @@ const BREAKDOWN_LABELS: Record<string, string> = {
   "last_k9": "Recent K/9",
 };
 
-const COMPONENT_META: Record<string, { label: string; key: keyof Starter["components"]; desc: string }> = {
-  pitcher:     { label: "Pitcher skill",  key: "pitcher_skill", desc: "Season talent snapshot" },
-  opponent:    { label: "Opponent",       key: "opponent",      desc: "Lineup quality vs this hand" },
-  form:        { label: "Recent form",    key: "recent_form",   desc: "Last few starts trend" },
-  environment: { label: "Environment",    key: "environment",   desc: "Park and home or road" },
-};
+const COMPONENT_META: Array<{
+  key: keyof Starter["components"];
+  breakdownKey: string;
+  label: string;
+  sub: string;
+}> = [
+  { key: "pitcher_skill", breakdownKey: "pitcher",     label: "Pitcher skill", sub: "Season talent snapshot" },
+  { key: "opponent",      breakdownKey: "opponent",    label: "Opponent",      sub: "Lineup quality vs this hand" },
+  { key: "recent_form",   breakdownKey: "form",        label: "Recent form",   sub: "Last few starts trend" },
+  { key: "environment",   breakdownKey: "environment", label: "Environment",   sub: "Park and home or road" },
+];
 
 function colorForScore(x: number): string {
-  if (x >= 72) return "#3fd17a";
-  if (x >= 54) return "#4aa3ff";
-  if (x >= 42) return "#f5c46b";
-  return "#e04e4e";
+  if (x >= 72) return "#7ba974";
+  if (x >= 54) return "#7d95b5";
+  if (x >= 42) return "#c89c4c";
+  return "#c87670";
 }
 
 function formatBreakdownValue(v: any): string {
@@ -251,59 +327,38 @@ function formatBreakdownValue(v: any): string {
 
 function ScoreBreakdown({ s }: { s: Starter }) {
   return (
-    <div className="space-y-4">
-      <p className="text-xs text-field-mute leading-relaxed">
-        The matchup score is a weighted blend of four components. Each one is normalized to a 0 to
-        100 scale around league average before being combined, so the inputs below are directly
-        comparable.
+    <div className="space-y-3">
+      <p className="text-xs text-ink-dim leading-relaxed">
+        The matchup score is a weighted blend of four components, each normalized to
+        a 0 to 100 scale around league average before combining.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {Object.entries(COMPONENT_META).map(([k, meta]) => {
-          const value = s.components[meta.key];
-          const color = colorForScore(value);
-          const inputs = s.breakdown[k] || {};
-          return (
-            <div key={k} className="rounded-lg border border-field-line/60 p-3">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <div className="text-sm font-semibold">{meta.label}</div>
-                  <div className="text-[11px] text-field-mute">{meta.desc}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-display text-2xl tabular-nums" style={{ color }}>
-                    {value.toFixed(0)}
-                  </div>
-                </div>
+      {COMPONENT_META.map((m) => {
+        const value = s.components[m.key];
+        const color = colorForScore(value);
+        const inputs = (s.breakdown[m.breakdownKey] || {}) as Record<string, any>;
+        return (
+          <div key={m.key} className="border-t border-ink-line pt-3">
+            <div className="flex items-baseline justify-between mb-2">
+              <div>
+                <div className="text-sm">{m.label}</div>
+                <div className="eyebrow">{m.sub}</div>
               </div>
-              <div className="h-1.5 bg-field-line rounded-full overflow-hidden mb-3">
-                <div className="h-full" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: color }} />
-              </div>
-              <dl className="grid grid-cols-2 gap-y-1 text-xs">
-                {Object.entries(inputs).map(([ik, iv]) => (
-                  <div key={ik} className="contents">
-                    <dt className="text-field-mute truncate">{BREAKDOWN_LABELS[ik] || ik}</dt>
-                    <dd className="text-right tabular-nums">{formatBreakdownValue(iv)}</dd>
-                  </div>
-                ))}
-              </dl>
+              <div className="num text-xl" style={{ color }}>{value.toFixed(0)}</div>
             </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SplitCol({ label, s }: { label: string; s: any }) {
-  return (
-    <div>
-      <div className="text-xs text-field-mute uppercase tracking-widest mb-1">{label}</div>
-      <dl className="grid grid-cols-2 gap-y-1 text-sm">
-        <Row k="ERA"  v={s.era} />
-        <Row k="WHIP" v={s.whip} />
-        <Row k="AVG"  v={s.avg_against} />
-        <Row k="K"    v={s.k} />
-      </dl>
+            <div className="h-[2px] bg-ink-line mb-2 overflow-hidden">
+              <div className="h-full" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: color }} />
+            </div>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+              {Object.entries(inputs).map(([ik, iv]) => (
+                <div key={ik} className="contents">
+                  <dt className="text-ink-dim">{BREAKDOWN_LABELS[ik] || ik}</dt>
+                  <dd className="num text-right">{formatBreakdownValue(iv)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        );
+      })}
     </div>
   );
 }

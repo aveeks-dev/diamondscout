@@ -8,36 +8,34 @@ type Props = {
 };
 
 const LABELS: Array<[keyof Props["components"], string]> = [
-  ["pitcher_skill", "Pitcher skill"],
+  ["pitcher_skill", "Pitcher"],
   ["opponent", "Opponent"],
-  ["recent_form", "Recent form"],
-  ["environment", "Park / home"],
+  ["recent_form", "Form"],
+  ["environment", "Env"],
 ];
 
 function color(score: number): string {
-  if (score >= 72) return "bg-diamond-green";
-  if (score >= 54) return "bg-diamond-blue";
-  if (score >= 42) return "bg-diamond-gold";
-  return "bg-diamond-red";
+  if (score >= 72) return "#7ba974";
+  if (score >= 54) return "#7d95b5";
+  if (score >= 42) return "#c89c4c";
+  return "#c87670";
 }
 
 export default function ComponentBars({ components }: Props) {
   return (
-    <div className="space-y-2">
+    <div className="grid grid-cols-2 gap-x-5 gap-y-2">
       {LABELS.map(([k, label]) => {
         const v = components[k];
         return (
-          <div key={k}>
-            <div className="flex justify-between text-[11px] text-field-mute">
-              <span>{label}</span>
-              <span className="tabular-nums">{v.toFixed(0)}</span>
-            </div>
-            <div className="h-1.5 bg-field-line rounded-full overflow-hidden">
+          <div key={k} className="flex items-center gap-2">
+            <span className="eyebrow w-16 shrink-0">{label}</span>
+            <div className="h-[3px] flex-1 bg-ink-line rounded-full overflow-hidden">
               <div
-                className={`h-full ${color(v)}`}
-                style={{ width: `${Math.max(0, Math.min(100, v))}%` }}
+                className="h-full rounded-full"
+                style={{ width: `${Math.max(0, Math.min(100, v))}%`, background: color(v) }}
               />
             </div>
+            <span className="num text-2xs text-ink-dim w-6 text-right">{v.toFixed(0)}</span>
           </div>
         );
       })}
