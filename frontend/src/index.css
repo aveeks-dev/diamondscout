@@ -29,10 +29,21 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Display: geometric sans for headers, titles, section heads, pitcher
+   names. Tight tracking keeps big sizes feeling architectural. */
 .display {
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Tier letter: serif only for the S/A/B/C/D/F grades. The rest of the
+   interface does not use this family. */
+.tier-letter {
   font-family: theme('fontFamily.serif');
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 96;
 }
 
 .eyebrow {

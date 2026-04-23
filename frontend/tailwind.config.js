@@ -32,6 +32,12 @@ export default {
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],
+        // Display: Space Grotesk — geometric, slightly boxy, used for all
+        // page titles, card names, and section heads.
+        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        // Serif: kept around solely for the tier letters (S, A, B, C, D, F).
+        // Fraunces gives those a scouting-report weight that a sans would
+        // not. Do not use for body copy or headings.
         serif:   ['Fraunces', 'Georgia', 'serif'],
         mono:    ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'monospace'],
       },

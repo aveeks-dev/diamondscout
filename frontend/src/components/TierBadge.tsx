@@ -21,7 +21,7 @@ export default function TierBadge({ tier, score, size = "md" }: Props) {
   const s = SIZES[size];
   return (
     <div className="shrink-0 text-right">
-      <div className={`display ${s.letter} leading-none`} style={{ color: tier.color }}>
+      <div className={`tier-letter ${s.letter} leading-none`} style={{ color: tier.color }}>
         {tier.label}
       </div>
       <div
@@ -46,7 +46,7 @@ export function TierInline({ tier, score }: { tier: Tier | string; score: number
   const c = colors[tier] || "#9b9a94";
   return (
     <span className="inline-flex items-baseline gap-2">
-      <span className="display text-xl leading-none" style={{ color: c }}>{tier}</span>
+      <span className="tier-letter text-xl leading-none" style={{ color: c }}>{tier}</span>
       <span className="num text-2xs text-ink-faint">{score.toFixed(0)}</span>
     </span>
   );
