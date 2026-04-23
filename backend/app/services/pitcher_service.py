@@ -16,6 +16,7 @@ from app.core.park_factors import park_factor
 from app.core.scoring import TIER_META, assign_tiers, compute_matchup_score, sleeper_tag
 from app.data.espn_client import fetch_ownership, lookup as lookup_ownership
 from app.data.mlb_client import get_client
+from app.data.weather_client import fetch_forecast
 from app.models.db import DailySnapshot, PitcherCache, SessionLocal
 
 log = logging.getLogger(__name__)
@@ -70,9 +71,22 @@ async def _enrich_starter(
         mlb.team_hitting_last_n_days(opp_team_id, 14) if opp_team_id else _empty(),
     )
 
-    venue_id = (game.get("venue") or {}).get("id")
+    venue = game.get("venue") or {}
+    venue_id = venue.get("id")
     park = park_factor(venue_id)
     is_home = side_key == "home"
+
+    # Pull weather at first pitch from Open-Meteo using the venue coordinates
+    # that MLB gives us via venue(location) hydrate.
+    coords = (venue.get("location") or {}).get("defaultCoordinates") or {}
+    weather = None
+    if coords.get("latitude") is not None:
+        weather = await fetch_forecast(
+            coords["latitude"],
+            coords["longitude"],
+            game.get("gameDate") or "",
+            venue_id=venue_id,
+        )
 
     opp_vs = opp_vs_hand.get(opp_hand_key, {}) if isinstance(opp_vs_hand, dict) else {}
 
@@ -107,9 +121,9 @@ async def _enrich_starter(
             "name": (opp.get("team") or {}).get("name"),
             "team_abbr": (opp.get("team") or {}).get("abbreviation"),
         },
-        "venue": {"id": venue_id, "name": (game.get("venue") or {}).get("name"), "is_home": is_home},
+        "venue": {"id": venue_id, "name": venue.get("name"), "is_home": is_home},
         "park": park,
-        "weather": game.get("weather"),
+        "weather": weather,
         "season_stats": _pick_pitcher_stats(season_stats),
         "last5": [_pick_game_log(g) for g in last_n],
         "splits": {

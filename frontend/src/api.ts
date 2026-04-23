@@ -38,7 +38,15 @@ export type Starter = {
   opponent: { id: number; name: string; team_abbr: string };
   venue: { id: number; name: string; is_home: boolean };
   park: { name: string; runs: number; hr: number };
-  weather?: { condition?: string; temp?: string; wind?: string };
+  weather?: {
+    condition: string;
+    temp_f: number | null;
+    wind_mph: number | null;
+    precip_in: number | null;
+    indoor: boolean;
+    windy: boolean;
+    wet: boolean;
+  } | null;
   season_stats: Record<string, any>;
   last5: Array<Record<string, any>>;
   splits: { vs_L: Record<string, any>; vs_R: Record<string, any> };

@@ -3,6 +3,7 @@ import type { Sleeper, Starter } from "../api";
 import TierBadge from "./TierBadge";
 import ComponentBars from "./ComponentBars";
 import { formatFirstPitch } from "./StartTime";
+import WeatherChip from "./WeatherChip";
 
 function SleeperPill({ s }: { s: Sleeper }) {
   // Premium (Hidden Gem) = gold, basic (Streamer) = blue. Visual distinction.
@@ -67,9 +68,8 @@ export default function PitcherCard({ s }: { s: Starter }) {
             {s.pitcher.name}
           </div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="text-xs text-field-mute">
-              {s.pitcher.throws}HP · {s.park.name} (park {s.park.runs})
-            </span>
+            <span className="text-xs text-field-mute">{s.pitcher.throws}HP</span>
+            <WeatherChip weather={s.weather} />
             <OwnershipChip pct={s.ownership.percent_owned} />
           </div>
         </div>

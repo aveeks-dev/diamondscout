@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchToday, type Starter } from "../api";
+import WeatherChip from "../components/WeatherChip";
 
 type SortKey = "score" | "era" | "whip" | "k9" | "owned";
 type SortDir = "asc" | "desc";
@@ -95,7 +96,7 @@ export default function Rankings() {
               <ThSort active={sort === "score"} dir={dir} onClick={() => toggle("score")}>Tier</ThSort>
               <Th>Pitcher</Th>
               <Th>vs</Th>
-              <Th>Park</Th>
+              <Th>Weather</Th>
               <ThSort active={sort === "owned"} dir={dir} onClick={() => toggle("owned")}>Rostered</ThSort>
               <ThSort active={sort === "era"}   dir={dir} onClick={() => toggle("era")}>ERA</ThSort>
               <ThSort active={sort === "whip"}  dir={dir} onClick={() => toggle("whip")}>WHIP</ThSort>
@@ -119,7 +120,7 @@ export default function Rankings() {
                   </span>
                 </td>
                 <td className="px-3 py-2 text-field-mute">{s.opponent.team_abbr}</td>
-                <td className="px-3 py-2 text-field-mute">{s.park.name}</td>
+                <td className="px-3 py-2"><WeatherChip weather={s.weather} /></td>
                 <td className="px-3 py-2"><OwnedCell pct={s.ownership.percent_owned} chg={s.ownership.percent_change} /></td>
                 <td className="px-3 py-2 tabular-nums">{s.season_stats.era ?? "—"}</td>
                 <td className="px-3 py-2 tabular-nums">{s.season_stats.whip ?? "—"}</td>

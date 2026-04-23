@@ -200,12 +200,12 @@ def assign_tiers(scores_desc: list[float]) -> list[str]:
 
 
 TIER_META: dict[str, dict] = {
-    "S": {"label": "S",  "name": "ACE",           "color": "#f5c46b", "desc": "Top-shelf matchup, auto-start"},
-    "A": {"label": "A",  "name": "FRONT-LINE",    "color": "#3fd17a", "desc": "Strong play, confident start"},
-    "B": {"label": "B",  "name": "MID-ROTATION",  "color": "#4aa3ff", "desc": "Solid option"},
-    "C": {"label": "C",  "name": "BACK-END",      "color": "#c7b56a", "desc": "Streamable but volatile"},
-    "D": {"label": "D",  "name": "SPOT START",    "color": "#e08c4e", "desc": "Only in deep leagues / DFS punt"},
-    "F": {"label": "F",  "name": "AVOID",         "color": "#e04e4e", "desc": "Tough matchup, sit if you can"},
+    "S": {"label": "S",  "name": "ACE",    "color": "#f5c46b", "desc": "Top of the slate, auto start"},
+    "A": {"label": "A",  "name": "STUD",   "color": "#3fd17a", "desc": "Confident start, plus matchup"},
+    "B": {"label": "B",  "name": "SOLID",  "color": "#4aa3ff", "desc": "Reliable mid rotation play"},
+    "C": {"label": "C",  "name": "STREAM", "color": "#c7b56a", "desc": "Streamable, some volatility"},
+    "D": {"label": "D",  "name": "PUNT",   "color": "#e08c4e", "desc": "Only in deep leagues or DFS"},
+    "F": {"label": "F",  "name": "AVOID",  "color": "#e04e4e", "desc": "Rough spot, sit if possible"},
 }
 
 

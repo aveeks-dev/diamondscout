@@ -4,6 +4,7 @@ import type { Starter } from "../api";
 import TierBadge from "../components/TierBadge";
 import ComponentBars from "../components/ComponentBars";
 import { formatFirstPitch } from "../components/StartTime";
+import WeatherChip from "../components/WeatherChip";
 
 export default function PitcherDetail() {
   const { id } = useParams();
@@ -45,9 +46,11 @@ export default function PitcherDetail() {
           <div className="font-display text-5xl tracking-wide truncate">
             {s.pitcher.name}
           </div>
-          <div className="text-field-mute mt-1">
-            vs {s.opponent.name} · {formatFirstPitch(s.game_time_utc)} · {s.venue.name}
-            <span className="ml-2">· {s.venue.is_home ? "Home start" : "Road start"}</span>
+          <div className="text-field-mute mt-1 flex items-center flex-wrap gap-x-3 gap-y-1">
+            <span>vs {s.opponent.name}</span>
+            <span>· {formatFirstPitch(s.game_time_utc)}</span>
+            <span>· {s.venue.is_home ? "Home start" : "Road start"}</span>
+            <WeatherChip weather={s.weather} size="md" />
           </div>
           {s.sleeper && (
             <div className="pill bg-diamond-gold/15 text-diamond-gold border border-diamond-gold/30 mt-3">
@@ -88,17 +91,21 @@ export default function PitcherDetail() {
           </dl>
         </Card>
 
-        <Card title="Park & environment">
+        <Card title="Environment">
           <dl className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-            <Row k="Venue"     v={s.venue.name} />
             <Row k="Park runs" v={s.park.runs} />
             <Row k="Park HR"   v={s.park.hr} />
             <Row k="Home/Road" v={s.venue.is_home ? "Home" : "Road"} />
             {s.weather && (
               <>
-                <Row k="Weather" v={s.weather.condition} />
-                <Row k="Temp"    v={s.weather.temp} />
-                <Row k="Wind"    v={s.weather.wind} />
+                <Row k="Weather" v={s.weather.indoor ? "Indoors" : s.weather.condition} />
+                {s.weather.temp_f !== null && <Row k="Temp" v={`${s.weather.temp_f}°F`} />}
+                {s.weather.wind_mph !== null && (
+                  <Row k="Wind" v={`${s.weather.wind_mph} mph${s.weather.windy ? " (windy)" : ""}`} />
+                )}
+                {s.weather.precip_in !== null && s.weather.precip_in > 0 && (
+                  <Row k="Precip" v={`${s.weather.precip_in}"`} />
+                )}
               </>
             )}
           </dl>

@@ -57,7 +57,7 @@ class MlbClient:
             params={
                 "sportId": 1,
                 "date": on_date.isoformat(),
-                "hydrate": "probablePitcher(note),linescore,team,venue,weather",
+                "hydrate": "probablePitcher(note),linescore,team,venue(location),weather",
             },
         )
         dates = data.get("dates", [])
