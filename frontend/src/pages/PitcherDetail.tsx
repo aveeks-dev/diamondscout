@@ -178,10 +178,8 @@ export default function PitcherDetail() {
             <SplitCol label="vs RHB" s={s.splits.vs_R} />
           </div>
         </Card>
-        <Card title="Score breakdown">
-          <pre className="text-xs text-field-mute whitespace-pre-wrap leading-relaxed">
-{JSON.stringify(s.breakdown, null, 2)}
-          </pre>
+        <Card title="How the score is built">
+          <ScoreBreakdown s={s} />
         </Card>
       </div>
     </div>
@@ -203,6 +201,96 @@ function Row({ k, v }: { k: string; v: any }) {
       <dt className="text-field-mute">{k}</dt>
       <dd className="tabular-nums">{v ?? "—"}</dd>
     </>
+  );
+}
+
+// Human-readable labels for the underlying inputs that feed each scoring
+// component. Mapping keeps the backend breakdown keys flexible while
+// guaranteeing the UI only shows things it understands.
+const BREAKDOWN_LABELS: Record<string, string> = {
+  "K%": "Strikeout rate",
+  "BB%": "Walk rate",
+  "ERA": "Season ERA",
+  "WHIP": "Season WHIP",
+  "OPS_vs_hand": "Opponent OPS vs hand",
+  "K%_vs_hand": "Opponent K% vs hand",
+  "OPS_last14": "Opponent OPS, last 14 days",
+  "park": "Park",
+  "park_runs_idx": "Park factor (runs)",
+  "park_hr_idx": "Park factor (HR)",
+  "home": "Home start",
+  "starts_used": "Starts analyzed",
+  "last_era": "Recent ERA",
+  "last_whip": "Recent WHIP",
+  "last_k9": "Recent K/9",
+};
+
+const COMPONENT_META: Record<string, { label: string; key: keyof Starter["components"]; desc: string }> = {
+  pitcher:     { label: "Pitcher skill",  key: "pitcher_skill", desc: "Season talent snapshot" },
+  opponent:    { label: "Opponent",       key: "opponent",      desc: "Lineup quality vs this hand" },
+  form:        { label: "Recent form",    key: "recent_form",   desc: "Last few starts trend" },
+  environment: { label: "Environment",    key: "environment",   desc: "Park and home or road" },
+};
+
+function colorForScore(x: number): string {
+  if (x >= 72) return "#3fd17a";
+  if (x >= 54) return "#4aa3ff";
+  if (x >= 42) return "#f5c46b";
+  return "#e04e4e";
+}
+
+function formatBreakdownValue(v: any): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  if (typeof v === "number") {
+    if (Number.isInteger(v)) return String(v);
+    return v.toFixed(v > 10 ? 1 : 3).replace(/\.?0+$/, "");
+  }
+  return String(v);
+}
+
+function ScoreBreakdown({ s }: { s: Starter }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-field-mute leading-relaxed">
+        The matchup score is a weighted blend of four components. Each one is normalized to a 0 to
+        100 scale around league average before being combined, so the inputs below are directly
+        comparable.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Object.entries(COMPONENT_META).map(([k, meta]) => {
+          const value = s.components[meta.key];
+          const color = colorForScore(value);
+          const inputs = s.breakdown[k] || {};
+          return (
+            <div key={k} className="rounded-lg border border-field-line/60 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <div className="text-sm font-semibold">{meta.label}</div>
+                  <div className="text-[11px] text-field-mute">{meta.desc}</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-2xl tabular-nums" style={{ color }}>
+                    {value.toFixed(0)}
+                  </div>
+                </div>
+              </div>
+              <div className="h-1.5 bg-field-line rounded-full overflow-hidden mb-3">
+                <div className="h-full" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: color }} />
+              </div>
+              <dl className="grid grid-cols-2 gap-y-1 text-xs">
+                {Object.entries(inputs).map(([ik, iv]) => (
+                  <div key={ik} className="contents">
+                    <dt className="text-field-mute truncate">{BREAKDOWN_LABELS[ik] || ik}</dt>
+                    <dd className="text-right tabular-nums">{formatBreakdownValue(iv)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

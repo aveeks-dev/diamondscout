@@ -127,3 +127,42 @@ export async function fetchTwoStart(days = 7): Promise<{
   if (!r.ok) throw new Error(`API error ${r.status}`);
   return r.json();
 }
+
+export type ProspectReason = {
+  tag: string;
+  icon: string;
+  detail: string;
+  url?: string;
+  published?: string;
+};
+
+export type Prospect = {
+  pitcher: {
+    id: number;
+    name: string;
+    team?: string;
+    team_abbr?: string;
+    throws?: string;
+    age?: number | null;
+    birth_date?: string | null;
+    mlb_debut?: string | null;
+  };
+  ownership: Ownership;
+  score: number;
+  season_stats: Record<string, any>;
+  reasons: ProspectReason[];
+  articles: Array<{ headline: string; description: string; url: string; published: string }>;
+  starting_today: boolean;
+  next_start_opp: string | null;
+};
+
+export async function fetchProspects(): Promise<{
+  date: string;
+  generated_at: string;
+  count: number;
+  prospects: Prospect[];
+}> {
+  const r = await fetch("/api/prospects");
+  if (!r.ok) throw new Error(`API error ${r.status}`);
+  return r.json();
+}

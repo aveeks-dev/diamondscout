@@ -4,7 +4,7 @@ from datetime import date as _date
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.services import pitcher_service
+from app.services import pitcher_service, prospects_service
 
 router = APIRouter()
 
@@ -90,6 +90,12 @@ async def pitcher_detail(pitcher_id: int, date: str | None = Query(None)):
         if p["pitcher"]["id"] == pitcher_id:
             return p
     raise HTTPException(status_code=404, detail="Pitcher not starting today.")
+
+
+@router.get("/prospects")
+async def prospects(date: str | None = Query(None)):
+    """Future prospects: pitchers under 30% rostered with measurable upside signals."""
+    return await prospects_service.find_prospects(_parse_date(date))
 
 
 @router.post("/refresh")

@@ -55,9 +55,13 @@ async def _enrich_starter(
     team_id = _get_team_id(side)
     opp_team_id = _get_team_id(opp)
 
-    # Full player doc (handedness, throws, etc.)
+    # Full player doc (handedness, debut date, age — we reuse this for
+    # rookie and age-based signals on the Prospects page).
     player_doc = await mlb.player(pid)
     throws = (player_doc.get("pitchHand") or {}).get("code") or "R"
+    birth_date = player_doc.get("birthDate")
+    mlb_debut = player_doc.get("mlbDebutDate")
+    current_age = player_doc.get("currentAge")
 
     # Opponent batting split opposite to pitcher's throwing hand
     opp_hand_key = "vr" if throws == "R" else "vl"
@@ -115,6 +119,9 @@ async def _enrich_starter(
             "team_id": team_id,
             "team": (side.get("team") or {}).get("name"),
             "team_abbr": (side.get("team") or {}).get("abbreviation"),
+            "age": current_age,
+            "birth_date": birth_date,
+            "mlb_debut": mlb_debut,
         },
         "opponent": {
             "id": opp_team_id,

@@ -5,6 +5,7 @@ import PitcherDetail from "./pages/PitcherDetail";
 import Streamers from "./pages/Streamers";
 import Trends from "./pages/Trends";
 import TwoStart from "./pages/TwoStart";
+import Prospects from "./pages/Prospects";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <nav className="flex items-center gap-4 text-sm">
             <NavTab to="/">Board</NavTab>
             <NavTab to="/streamers">Streamers</NavTab>
+            <NavTab to="/prospects">Prospects</NavTab>
             <NavTab to="/rankings">Rankings</NavTab>
             <NavTab to="/trends">Trends</NavTab>
             <NavTab to="/two-start">Two-Start</NavTab>
@@ -32,6 +34,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/streamers" element={<Streamers />} />
+          <Route path="/prospects" element={<Prospects />} />
           <Route path="/rankings" element={<Rankings />} />
           <Route path="/trends" element={<Trends />} />
           <Route path="/two-start" element={<TwoStart />} />
