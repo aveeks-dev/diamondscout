@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; font-family: "Inter", system-ui, sans-serif; }
+
+/* A subtle "baseball field" backdrop — chalk lines on navy. */
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74,163,255,0.10), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(245,196,107,0.06), transparent 60%),
+    #0a1628;
+}
+
+.card {
+  @apply bg-field-panel border border-field-line rounded-xl;
+}
+
+.stat-label {
+  @apply text-[11px] uppercase tracking-widest text-field-mute;
+}
+
+.stat-value {
+  @apply font-display text-2xl tracking-wide;
+}
+
+.pill {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider;
+}
+
+.grade-A { @apply text-diamond-green; }
+.grade-B { @apply text-diamond-blue; }
+.grade-C { @apply text-diamond-gold; }
+.grade-D { @apply text-diamond-red; }
+.grade-F { @apply text-diamond-red; }
+
+/* Keep input focus visible but on-brand */
+input:focus, select:focus, button:focus-visible {
+  outline: 2px solid theme('colors.diamond.gold');
+  outline-offset: 1px;
+}
