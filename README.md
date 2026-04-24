@@ -2,8 +2,6 @@
 
 Diamond Scout is a fantasy baseball research website I built to help with weekly streamer and spot start decisions. It pulls probable starters from the official MLB Stats API, layers in ESPN fantasy ownership data, and scores every pitcher on the slate so you can quickly see who is worth starting, who is a waiver wire pickup, and who you should probably sit.
 
-This is a personal project. I am Aveek, a college student who plays a few fantasy leagues and got tired of cross referencing four different tabs every morning.
-
 ## What it does
 
 The main board shows every probable starter for the day, grouped into tiers. Tiers run from S (ace) down to F (avoid) and are assigned by percentile across that day's slate, so there is always an S tier and always an F tier. I found this more useful than fixed cutoffs, which usually left no one in the top band because the underlying 0 to 100 score tends to compress into the 35 to 75 range.
